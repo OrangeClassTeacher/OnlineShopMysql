@@ -44,7 +44,7 @@ exports.updateUser = async (Userid, updatedData) => {
 };
 exports.deleteUser = async (UserId) => {
   const [result] = await pool.query(
-    `DELETE FROM Users WHERE UserId = ${UserId}`
+    `DELETE FROM Users WHERE UserId= ${UserId}`
   );
   return result;
 };
