@@ -1,0 +1,25 @@
+###
+POST http://localhost:8000/api/menu
+Content-Type: application/json
+
+{
+  "menuName":"Categories",
+  "link":"/categories"
+}
+
+###
+get http://localhost:8000/api/menu
+
+
+###
+put http://localhost:8000/api/menu/2
+Content-Type: application/json
+
+{
+  "menuName":"Categories",
+  "link":"/categories"
+}
+
+
+###
+get http://localhost:8000/api/menu/2
