@@ -1,0 +1,27 @@
+###
+POST http://localhost:9000/api/category
+Content-Type: application/json
+
+{
+  "categoryName":"Ha"
+}
+
+###
+GET http://localhost:9000/api/category?limit=10
+Content-Type: application/json
+
+###
+GET http://localhost:9000/api/category/1
+Content-Type: application/json
+
+###
+PUT http://localhost:9000/api/category/1
+Content-Type: application/json
+
+{
+  "categoryName":"Shoess"
+}
+
+###
+DELETE http://localhost:9000/api/category/1
+Content-Type: application/json

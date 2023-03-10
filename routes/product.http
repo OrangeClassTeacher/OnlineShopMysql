@@ -1,0 +1,37 @@
+###
+POST http://localhost:9000/api/product
+Content-Type: application/json
+
+{
+  
+  "categoryId":2,
+  "price":2300,
+  "productName":"Test 1",
+  "quantityInStock": 300,
+  "thumbImage":"",
+  "brandId":2,
+  "descriptions":"desc",
+  "salePercent": 0,
+  "saleFinishDate":"2022-12-09",
+  "images": ["test","test1","test3"]
+}
+
+###
+GET http://localhost:9000/api/product?limit=10
+Content-Type: application/json
+
+###
+GET http://localhost:9000/api/product/10
+Content-Type: application/json
+
+###
+PUT http://localhost:9000/api/product/1
+Content-Type: application/json
+
+{
+  "productName":"Shoess"
+}
+
+###
+DELETE http://localhost:9000/api/product/1
+Content-Type: application/json

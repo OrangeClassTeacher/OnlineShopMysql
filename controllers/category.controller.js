@@ -2,119 +2,79 @@ const fs = require("fs");
 const uuid = require("uuid");
 
 const dataFile = process.cwd() + "/data/category.json";
+const cateService = require("../model/category-service.js");
+
 //id, categoryName, icon
 
-exports.getAll = (request, response) => {
-  fs.readFile(dataFile, "utf-8", (readErr, data) => {
-    if (readErr) {
-      return response.json({ status: false, message: readErr });
+exports.getAll = async (req, res) => {
+  const { limit } = req.query;
+  try {
+    const result = await cateService.getCategories(limit);
+    console.log(result);
+    if (result.length > 0) {
+      res.json({ status: true, result });
     }
-
-    const savedData = data ? JSON.parse(data) : [];
-
-    return response.json({ status: true, result: savedData });
-  });
+  } catch (err) {
+    console.log(err);
+    res.json({ status: false, message: err });
+  }
 };
 
-exports.getOne = (request, response) => {
-  const { id } = request.body;
-  if (!id)
-    return response.json({ status: false, message: "category id not found" });
+exports.getOne = async (req, res) => {
+  const { id } = req.params;
+  if (!id) return res.json({ status: false, message: "cate not found" });
+  try {
+    const result = await cateService.getOne(id);
 
-  fs.readFile(dataFile, "utf-8", (readErr, data) => {
-    if (readErr) {
-      return response.json({ status: false, message: readErr });
-    }
-
-    const savedData = JSON.parse(data);
-
-    return response.json({
-      status: true,
-      result: savedData.find((cateItem) => cateItem.id == id),
-    });
-  });
+    res.json({ status: true, result });
+  } catch (err) {
+    res.json({ status: false, message: err });
+  }
 };
 
-exports.create = (request, response) => {
-  const { categoryName } = request.body;
-  fs.readFile(dataFile, "utf-8", (readErr, data) => {
-    if (readErr) {
-      return response.json({ status: false, message: readErr });
-    }
+exports.create = async (req, res) => {
+  // const { categoryName } = request.body;
+  try {
+    const result = await cateService.createCategory(req.body);
 
-    const parsedData = data ? JSON.parse(data) : [];
-
-    const newObj = { id: uuid.v4(), categoryName };
-
-    parsedData.push(newObj);
-
-    fs.writeFile(dataFile, JSON.stringify(parsedData), (writeErr) => {
-      if (writeErr) {
-        return response.json({ status: false, message: writeErr });
-      }
-
-      return response.json({
-        status: true,
-        message: "Амжилттай нэмэгдлээ",
-        result: newObj,
-      });
-    });
-  });
+    res.json({ status: true, message: "Амжилттай нэмэгдлээ", result });
+  } catch (err) {
+    res.json({ status: false, message: err });
+  }
 };
 
-exports.update = (request, response) => {
+exports.update = async (request, response) => {
   const { id } = request.params;
-  const { categoryName } = request.body;
-
+  // const { categoryName } = request.body;
+  console.log(id);
   if (!id)
     return response.json({ status: false, message: "category id not found" });
 
-  fs.readFile(dataFile, "utf-8", (readErr, data) => {
-    if (readErr) {
-      return response.json({ status: false, message: readErr });
+  try {
+    const result = await cateService.updateCategory(id, request.body);
+    console.log(result);
+    if (result.length > 0 && result[0].affectedRows > 0) {
+      return response.json({ status: true, message: "Success" });
+    } else {
+      return response.json({ status: false, message: "Amjiltgui" });
     }
-
-    const parsedData = data ? JSON.parse(data) : [];
-
-    const updateData = parsedData.map((cateObj) => {
-      if (cateObj.id == id) {
-        return { ...cateObj, categoryName };
-      } else {
-        return cateObj;
-      }
-    });
-
-    fs.writeFile(dataFile, JSON.stringify(updateData), (writeErr) => {
-      if (writeErr) {
-        return response.json({ status: false, message: writeErr });
-      }
-
-      return response.json({ status: true, message: "Амжилттай засагдлаа" });
-    });
-  });
+  } catch (err) {
+    response.json({ status: false, message: err });
+  }
 };
 
-exports.delete = (request, response) => {
-  const { id } = request.params;
+exports.delete = async (req, res) => {
+  const { id } = req.params;
+  if (!id) return res.json({ status: false, message: "Category not found" });
+  try {
+    const result = await cateService.deleteCategory(id);
 
-  if (!id)
-    return response.json({ status: false, message: "category id not found" });
-
-  fs.readFile(dataFile, "utf-8", (readErr, data) => {
-    if (readErr) {
-      return response.json({ status: false, message: readErr });
+    if (result && result[0].affectedRows > 0) {
+      return res.json({ status: true, message: "Success" });
+    } else {
+      return res.json({ status: false, message: "Error" });
     }
-
-    const parsedData = JSON.parse(data);
-
-    const deletedData = parsedData.filter((e) => e.id != id);
-
-    fs.writeFile(dataFile, JSON.stringify(deletedData), (writeErr) => {
-      if (writeErr) {
-        return response.json({ status: false, message: writeErr });
-      }
-
-      return response.json({ status: true, message: "Амжилттай устгалаа" });
-    });
-  });
+  } catch (err) {
+    res.json({ status: false, message: err });
+  }
 };

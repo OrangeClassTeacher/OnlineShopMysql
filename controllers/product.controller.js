@@ -6,90 +6,65 @@ const dataFile = process.cwd() + "/data/product.json";
 // salePercent, quantity, brandId, desc, createdDate,
 // UpdateDate, CreatedUser, UpdatedUser
 
-exports.getAll = (request, response) => {
-  fs.readFile(dataFile, "utf-8", (readErr, data) => {
-    if (readErr) {
-      return response.json({ status: false, message: readErr });
+const proService = require("../model/product-service.js");
+
+exports.getAll = async (req, res) => {
+  const { limit } = req.query;
+  try {
+    const result = await proService.getProducts(limit);
+    console.log(result);
+    if (result.length > 0) {
+      res.json({ status: true, result });
     }
-
-    const savedData = data ? JSON.parse(data) : [];
-
-    return response.json({ status: true, result: savedData });
-  });
+  } catch (err) {
+    console.log(err);
+    res.json({ status: false, message: err });
+  }
 };
 
-exports.getOne = (request, response) => {
-  const { id } = request.params;
+exports.getOne = async (req, res) => {
+  const { id } = req.params;
+  if (!id) return res.json({ status: false, message: "product not found" });
+  try {
+    const result = await proService.getOne(id);
 
-  if (!id)
-    return response.json({ status: false, message: "product id not found" });
+    const resultImages = await proService.getProductImages(id);
 
-  fs.readFile(dataFile, "utf-8", (readErr, data) => {
-    if (readErr) {
-      return response.json({ status: false, message: readErr });
-    }
+    console.log(result);
+    console.log(resultImages);
 
-    const savedData = data ? JSON.parse(data) : [];
+    const proObj = { ...result };
+    proObj.images = resultImages;
 
-    return response.json({
-      status: true,
-      result: savedData.find((userItem) => userItem.id == id),
-    });
-  });
+    res.json({ status: true, result: proObj });
+  } catch (err) {
+    res.json({ status: false, message: err });
+  }
 };
 
-exports.create = (request, response) => {
-  const {
-    productName,
-    categoryId,
-    price,
-    thumbImage,
-    images,
-    salePercent,
-    quantity,
-    brandId,
-    desc,
-    saleFinishDate,
-  } = request.body;
+exports.create = async (req, res) => {
+  const { images } = req.body;
 
-  fs.readFile(dataFile, "utf-8", (readErr, data) => {
-    if (readErr) {
-      return response.json({ status: false, message: readErr });
-    }
+  try {
+    const result = await proService.createProduct(req.body);
 
-    const parsedData = data ? JSON.parse(data) : [];
-    const newObj = {
-      id: uuid.v4(),
-      productName,
-      categoryId,
-      price,
-      thumbImage,
-      images,
-      quantity,
-      brandId,
-      desc,
-      salePercent,
-      saleFinishDate,
-      createdDate: Date.now(),
-    };
+    const resultProLast = await proService.getLastOne();
+    console.log(resultProLast, "HAHa");
 
-    parsedData.push(newObj);
+    const resultImg = await proService.createProductImage(
+      resultProLast.productId,
+      images
+    );
 
-    fs.writeFile(dataFile, JSON.stringify(parsedData), (writeErr) => {
-      if (writeErr) {
-        return response.json({ status: false, message: writeErr });
-      }
+    console.log(resultImg);
 
-      return response.json({
-        status: true,
-        message: "Амжилттай нэмэгдлээ.",
-        result: newObj,
-      });
-    });
-  });
+    res.json({ status: true, message: "Амжилттай нэмэгдлээ", result });
+  } catch (err) {
+    res.json({ status: false, message: err });
+  }
 };
 
-exports.update = (request, response) => {
+exports.update = async (request, response) => {
   const { id } = request.params;
   const {
     productName,
@@ -106,64 +81,34 @@ exports.update = (request, response) => {
   if (!id)
     return response.json({ status: false, message: "product id not found" });
 
-  fs.readFile(dataFile, "utf-8", (readErr, data) => {
-    if (readErr) {
-      return response.json({ status: false, message: readErr });
+  try {
+    const result = await proService.updateProduct(id, request.body);
+    console.log(result);
+    if (result.length > 0 && result[0].affectedRows > 0) {
+      return response.json({ status: true, message: "Success" });
+    } else {
+      return response.json({ status: false, message: "Amjiltgui" });
     }
-
-    const parsedData = JSON.parse(data);
-
-    const updateData = parsedData.map((userObj) => {
-      if (userObj.id == id) {
-        return {
-          ...userObj,
-          productName,
-          categoryId,
-          price,
-          thumbImage,
-          images,
-          salePercent,
-          quantity,
-          brandId,
-          desc,
-          updateDate: Date.now(),
-        };
-      } else {
-        return userObj;
-      }
-    });
-
-    fs.writeFile(dataFile, JSON.stringify(updateData), (writeErr) => {
-      if (writeErr) {
-        return response.json({ status: false, message: writeErr });
-      }
-
-      return response.json({ status: true, message: "Амжилттай засагдлаа" });
-    });
-  });
+  } catch (err) {
+    response.json({ status: false, message: err });
+  }
 };
 
-exports.delete = (request, response) => {
+exports.delete = async (req, res) => {
   const { id } = request.params;
 
   if (!id)
     return response.json({ status: false, message: "product id not found" });
 
-  fs.readFile(dataFile, "utf-8", (readErr, data) => {
-    if (readErr) {
-      return response.json({ status: false, message: readErr });
+  try {
+    const result = await proService.deletePro(id);
+
+    if (result && result[0].affectedRows > 0) {
+      return res.json({ status: true, message: "Success" });
+    } else {
+      return res.json({ status: false, message: "Error" });
     }
-
-    const parsedData = JSON.parse(data);
-
-    const deletedData = parsedData.filter((e) => e.id != id);
-
-    fs.writeFile(dataFile, JSON.stringify(deletedData), (writeErr) => {
-      if (writeErr) {
-        return response.json({ status: false, message: writeErr });
-      }
-
-      return response.json({ status: true, message: "Амжилттай устгалаа" });
-    });
-  });
+  } catch (err) {
+    res.json({ status: false, message: err });
+  }
 };

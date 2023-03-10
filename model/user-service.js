@@ -35,7 +35,7 @@ exports.updateUser = async (Userid, updatedData) => {
   let [result] = "";
   for (let i = 0; i < Object.keys(updatedData).length; i++) {
     result = await pool.query(
-      `UPDATE Users SET ${Object.keys(updatedData)[i]} = '${
+      `UPDATE users SET ${Object.keys(updatedData)[i]} = '${
         Object.values(updatedData)[i]
       }' WHERE UserId = ${Userid}`
     );
@@ -44,7 +44,7 @@ exports.updateUser = async (Userid, updatedData) => {
 };
 exports.deleteUser = async (UserId) => {
   const [result] = await pool.query(
-    `DELETE FROM Users WHERE UserId= ${UserId}`
+    `DELETE FROM users WHERE UserId= ${UserId}`
   );
   return result;
 };
